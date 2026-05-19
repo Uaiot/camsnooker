@@ -20,7 +20,11 @@ export function el(tag, attrs = {}, children = []) {
 export function icon(name, sizeClass = "h-4 w-4") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
   svg.setAttribute("class", sizeClass)
-  const size = sizeClass.includes("h-5") || sizeClass.includes("w-5") ? "20" : "16"
+  const size = sizeClass.includes("h-6") || sizeClass.includes("w-6")
+    ? "24"
+    : sizeClass.includes("h-5") || sizeClass.includes("w-5")
+    ? "20"
+    : "16"
   svg.setAttribute("width", size)
   svg.setAttribute("height", size)
   svg.setAttribute("viewBox", "0 0 24 24")

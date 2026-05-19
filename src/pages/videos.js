@@ -233,16 +233,16 @@ export async function renderVideos(root, query) {
 
   const top = card([
     el("div", { className: "p-5 sm:p-6" }, [
-      el("div", { className: "flex flex-wrap items-center justify-between gap-3" }, [
+      el("div", { className: "flex flex-wrap items-end justify-between gap-3" }, [
         el("div", { className: "min-w-0" }, [
-          el("div", { className: "text-lg font-semibold truncate" }, [venue.name]),
-          el("div", { className: "mt-1 flex flex-wrap gap-2" }, [
+          el("div", { className: "text-xl font-semibold tracking-tight truncate text-slate-950" }, [venue.name]),
+          el("div", { className: "mt-2 flex flex-wrap gap-2" }, [
             badge(date ? fmtIsoDate(`${date}T00:00:00`) : "Data", "muted"),
             badge(tableName, "muted"),
             time ? badge(time, "neon") : badge("Todos", "muted"),
           ]),
         ]),
-        el("a", { href: `#/venue/${encodeURIComponent(venueId)}?date=${encodeURIComponent(date)}&table=${encodeURIComponent(tableId)}`, className: "inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-600 transition" }, [
+        el("a", { href: `#/venue/${encodeURIComponent(venueId)}?date=${encodeURIComponent(date)}&table=${encodeURIComponent(tableId)}`, className: "inline-flex items-center gap-1.5 rounded-xl px-1 py-1 text-sm font-semibold text-brand transition hover:text-brand-600" }, [
           "Alterar filtros",
         ]),
       ]),
@@ -284,7 +284,7 @@ export async function renderVideos(root, query) {
     const downloadUrl = resolveDownloadUrl(v)
 
     const cardEl = el("div", {
-      className: "group relative overflow-hidden rounded-2xl border border-white/10 bg-ink-900 shadow-soft hover:shadow-card transition-all hover:-translate-y-1"
+      className: "group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200/70 bg-ink-900 shadow-soft transition-all hover:-translate-y-1 hover:shadow-card"
     })
 
     const thumbContainer = el("div", { className: "relative aspect-video overflow-hidden" }, [
@@ -303,22 +303,22 @@ export async function renderVideos(root, query) {
             ["Sem thumbnail"]
           ),
       el("div", {
-        className: "absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-all"
+        className: "absolute inset-0 flex items-center justify-center bg-black/10 transition-all group-hover:bg-black/30"
       }, [
         el("div", {
-          className: "opacity-0 group-hover:opacity-100 transition-opacity"
+          className: "opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
         }, [
           el("button", {
             type: "button",
-            className: "h-14 w-14 rounded-full bg-brand text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform",
+            className: "flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-lg ring-4 ring-white/25 transition-transform hover:scale-110",
             onclick: () => renderModal(v)
           }, [icon("play", "h-6 w-6")])
         ])
       ])
     ])
 
-    const content = el("div", { className: "p-4" }, [
-      el("div", { className: "text-sm font-semibold truncate" }, [
+    const content = el("div", { className: "p-4 text-white" }, [
+      el("div", { className: "truncate text-sm font-semibold text-white" }, [
         v.title || `Vídeo • ${fmtTime(v.recorded_at) || ""}`.trim()
       ]),
       el("div", { className: "mt-2 flex flex-wrap items-center justify-between gap-2" }, [
@@ -332,7 +332,7 @@ export async function renderVideos(root, query) {
             href: downloadUrl || "#",
             target: "_blank",
             rel: "noopener noreferrer",
-            className: "inline-flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition",
+            className: "inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white transition hover:border-brand/40 hover:bg-brand",
             title: "Baixar"
           },
           [icon("download", "h-4 w-4")]
