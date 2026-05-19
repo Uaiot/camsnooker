@@ -16,8 +16,17 @@ function driveDownloadUrl(fileId) {
   return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
 }
 
+function drivePreviewUrl(fileId) {
+  return `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview`
+}
+
 function driveThumbnailUrl(fileId) {
   return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w1000`
+}
+
+export function resolveDrivePreviewUrl(v) {
+  const fileId = driveFileId(v)
+  return fileId ? drivePreviewUrl(fileId) : ""
 }
 
 export function resolveThumbUrl(v) {
