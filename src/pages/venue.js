@@ -1,7 +1,7 @@
 import { setHeaderTitle } from "../shell.js"
 import { getVenue, listTables, listVideos } from "../data/db.js"
 import { fmtVenueLocation, fmtTime } from "../lib/format.js"
-import { el } from "../ui/dom.js"
+import { el, icon } from "../ui/dom.js"
 import { badge, button, card, select, toast } from "../ui/kit.js"
 
 function todayStr() {
@@ -10,6 +10,33 @@ function todayStr() {
   const mm = String(d.getMonth() + 1).padStart(2, "0")
   const dd = String(d.getDate()).padStart(2, "0")
   return `${yyyy}-${mm}-${dd}`
+}
+
+function parseIsoDate(value) {
+  const [year, month, day] = String(value || "").split("-").map(Number)
+  if (!year || !month || !day) return new Date()
+  return new Date(year, month - 1, day)
+}
+
+function toIsoDate(date) {
+  const yyyy = String(date.getFullYear())
+  const mm = String(date.getMonth() + 1).padStart(2, "0")
+  const dd = String(date.getDate()).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd}`
+}
+
+function formatDateDisplay(value) {
+  if (!value) return ""
+  const date = parseIsoDate(value)
+  const day = String(date.getDate()).padStart(2, "0")
+  const month = date.toLocaleString("pt-BR", { month: "short" })
+  const year = date.getFullYear()
+  return `${day} ${month.replace(".", "").toUpperCase()} ${year}`
+}
+
+function formatWeekday(value) {
+  if (!value) return ""
+  return parseIsoDate(value).toLocaleDateString("pt-BR", { weekday: "long" })
 }
 
 export async function renderVenue(root, query, params = {}) {
@@ -22,7 +49,7 @@ export async function renderVenue(root, query, params = {}) {
   if (!venue) {
     setHeaderTitle("Local")
     root.appendChild(
-      card([el("div", { className: "p-5 sm:p-6 text-sm text-white/60" }, ["Local não encontrado."])])
+      card([el("div", { className: "p-5 sm:p-6 text-sm text-slate-600" }, ["Local não encontrado."])])
     )
     return
   }
@@ -48,15 +75,14 @@ export async function renderVenue(root, query, params = {}) {
         el("div", { className: "p-5 sm:p-6" }, [
           el("div", { className: "flex items-start justify-between gap-3" }, [
             el("div", { className: "min-w-0" }, [
-              el("div", { className: "text-2xl font-semibold tracking-tight truncate" }, [
+              el("div", { className: "text-2xl font-semibold tracking-tight truncate text-slate-950" }, [
                 venue.name,
               ]),
-              el("div", { className: "mt-1 text-sm text-white/55" }, [
+              el("div", { className: "mt-1 text-sm text-slate-600" }, [
                 fmtVenueLocation(venue),
               ]),
               el("div", { className: "mt-3 flex flex-wrap gap-2" }, [
                 badge("Clipes", "neon"),
-                badge("Mobile-first"),
               ]),
             ]),
             el(
@@ -72,7 +98,7 @@ export async function renderVenue(root, query, params = {}) {
                       alt: venue.name,
                       className: "h-full w-full object-cover",
                     })
-                  : el("div", { className: "text-xs text-white/60 font-semibold" }, ["LOGO"]),
+                  : el("div", { className: "text-xs text-slate-500 font-semibold" }, ["LOGO"]),
               ]
             ),
           ]),
@@ -89,22 +115,103 @@ export async function renderVenue(root, query, params = {}) {
   const filtersCard = card([el("div", { className: "p-5 sm:p-6" })])
   const box = filtersCard.firstChild
   box.appendChild(el("div", { className: "text-lg font-semibold" }, ["Selecione o horário"]))
-  box.appendChild(el("div", { className: "mt-2 text-sm text-white/55" }, [
+  box.appendChild(el("div", { className: "mt-2 text-sm text-slate-600" }, [
     "Escolha a data, a mesa e um horário disponível para listar os vídeos.",
   ]))
 
-  const grid = el("div", { className: "mt-4 grid gap-3 sm:grid-cols-3" })
+  const grid = el("div", { className: "mt-4 grid gap-3 lg:grid-cols-[1.25fr_0.85fr_0.85fr]" })
 
-  const dateWrap = el("label", { className: "block" }, [
-    el("div", { className: "mb-1 text-xs font-medium text-white/70" }, ["Data"]),
-    el("input", {
-      type: "date",
-      value: dateValue,
-      className:
-        "w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-neon-b/40 focus:ring-2 focus:ring-neon-b/20",
-    }),
+  const weekdayDisplay = el("div", { className: "text-xs font-semibold uppercase tracking-[0.24em] text-brand" }, [
+    formatWeekday(dateValue),
   ])
-  const dateInput = dateWrap.querySelector("input")
+  const dateTextDisplay = el("div", { className: "mt-1 text-[2rem] font-bold leading-none tracking-normal text-slate-950 sm:text-4xl" }, [
+    formatDateDisplay(dateValue),
+  ])
+  const dragHint = el("div", { className: "mt-3 flex items-center gap-2 text-xs font-medium text-slate-500" }, [
+    el("span", { className: "h-1.5 w-1.5 rounded-full bg-brand/70" }),
+    "Arraste para os lados",
+  ])
+
+  const prevDateButton = el("button", {
+    type: "button",
+    className:
+      "inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand/20 bg-brand/10 text-brand shadow-sm transition hover:bg-brand/20 active:scale-95",
+    onclick: () => changeDate(-1),
+    title: "Dia anterior",
+  }, [icon("chevron-left", "h-5 w-5")])
+
+  const datePickerButton = el("button", {
+    type: "button",
+    className:
+      "inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 shadow-sm transition hover:border-brand/25 hover:bg-brand hover:text-white active:scale-95",
+    onclick: () => openDatePicker(),
+    title: "Abrir calendario",
+  }, [icon("calendar", "h-5 w-5")])
+
+  const nextDateButton = el("button", {
+    type: "button",
+    className:
+      "inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand/20 bg-brand/10 text-brand shadow-sm transition hover:bg-brand/20 active:scale-95",
+    onclick: () => changeDate(1),
+    title: "Proximo dia",
+  }, [icon("chevron-right", "h-5 w-5")])
+
+  const dateValueDisplay = el("div", {
+    role: "button",
+    tabindex: "0",
+    className:
+      "group relative min-h-[138px] w-full touch-pan-y overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white px-5 py-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md active:cursor-grabbing",
+    title: "Abrir calendario",
+  }, [
+    el("div", { className: "pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-brand" }),
+    el("div", { className: "pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full bg-brand/10" }),
+    el("div", { className: "relative flex h-full flex-col justify-between" }, [
+      el("div", {}, [weekdayDisplay, dateTextDisplay, dragHint]),
+      el("div", { className: "mt-4 flex items-center justify-between" }, [
+        el("div", { className: "flex items-center gap-2 text-xs font-semibold text-slate-400" }, [
+          prevDateButton,
+          el("span", {}, ["-1 dia"]),
+        ]),
+        datePickerButton,
+        el("div", { className: "flex items-center gap-2 text-xs font-semibold text-slate-400" }, [
+          el("span", {}, ["+1 dia"]),
+          nextDateButton,
+        ]),
+      ]),
+    ]),
+  ])
+
+  const dateInput = el("input", {
+    type: "date",
+    value: dateValue,
+    className:
+      "sr-only",
+    "aria-label": "Data",
+  })
+
+  function updateDateDisplay(value) {
+    weekdayDisplay.textContent = formatWeekday(value)
+    dateTextDisplay.textContent = formatDateDisplay(value)
+  }
+
+  function changeDate(offset) {
+    const current = parseIsoDate(dateInput.value)
+    current.setDate(current.getDate() + offset)
+    dateInput.value = toIsoDate(current)
+    updateDateDisplay(dateInput.value)
+    refreshAvailability()
+  }
+
+  function openDatePicker() {
+    if (typeof dateInput.showPicker === "function") dateInput.showPicker()
+    else dateInput.click()
+  }
+
+  const dateWrap = el("div", { className: "block" }, [
+    el("div", { className: "mb-1 text-xs font-medium text-slate-600" }, ["Data"]),
+    dateValueDisplay,
+    dateInput,
+  ])
 
   const tableSel = select({
     label: "Mesa",
@@ -189,7 +296,55 @@ export async function renderVenue(root, query, params = {}) {
     }
   }
 
-  dateInput.addEventListener("change", () => refreshAvailability())
+  dateInput.addEventListener("change", () => {
+    updateDateDisplay(dateInput.value)
+    refreshAvailability()
+  })
+
+  let suppressDatePickerClick = false
+
+  dateValueDisplay.addEventListener("click", (event) => {
+    if (event.target.closest("button")) return
+    if (suppressDatePickerClick) {
+      suppressDatePickerClick = false
+      return
+    }
+    openDatePicker()
+  })
+
+  let dragStartX = 0
+  let dragDeltaX = 0
+  let draggingDate = false
+
+  dateValueDisplay.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("button")) return
+    dragStartX = event.clientX
+    dragDeltaX = 0
+    draggingDate = true
+    dateValueDisplay.setPointerCapture(event.pointerId)
+  })
+
+  dateValueDisplay.addEventListener("pointermove", (event) => {
+    if (!draggingDate) return
+    dragDeltaX = event.clientX - dragStartX
+    const limited = Math.max(-44, Math.min(44, dragDeltaX * 0.45))
+    dateValueDisplay.style.transform = `translateX(${limited}px)`
+  })
+
+  dateValueDisplay.addEventListener("pointerup", (event) => {
+    if (!draggingDate) return
+    draggingDate = false
+    dateValueDisplay.releasePointerCapture(event.pointerId)
+    dateValueDisplay.style.transform = ""
+    if (Math.abs(dragDeltaX) < 56) return
+    suppressDatePickerClick = true
+    changeDate(dragDeltaX > 0 ? 1 : -1)
+  })
+
+  dateValueDisplay.addEventListener("pointercancel", () => {
+    draggingDate = false
+    dateValueDisplay.style.transform = ""
+  })
   tableSel.select.addEventListener("change", () => refreshAvailability())
   timeSel.select.addEventListener("change", () => updateCtaState())
   cta.addEventListener("click", () => updateCtaState())
@@ -197,4 +352,3 @@ export async function renderVenue(root, query, params = {}) {
   await refreshAvailability()
   updateCtaState()
 }
-

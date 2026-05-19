@@ -106,14 +106,14 @@ function renderModal(v) {
   })
 
   const modal = el("div", {
-    className: "w-full max-w-4xl rounded-3xl border border-white/15 bg-ink-900 shadow-card overflow-hidden"
+    className: "w-full max-w-4xl rounded-3xl border border-slate-200 bg-white shadow-card overflow-hidden"
   })
 
   const header = el("div", {
-    className: "flex items-center justify-between gap-4 px-5 py-4 border-b border-white/10"
+    className: "flex items-center justify-between gap-4 px-5 py-4 border-b border-slate-200"
   }, [
     el("div", { className: "min-w-0" }, [
-      el("div", { className: "text-base font-semibold truncate" }, [
+      el("div", { className: "text-base font-semibold truncate text-slate-900" }, [
         v.title || `Vídeo • ${fmtTime(v.recorded_at) || ""}`.trim()
       ]),
       el("div", { className: "mt-1 flex flex-wrap gap-2" }, [
@@ -123,7 +123,7 @@ function renderModal(v) {
     ]),
     el("button", {
       type: "button",
-      className: "inline-flex items-center justify-center h-10 w-10 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition",
+      className: "inline-flex items-center justify-center h-10 w-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition",
       onclick: closeModal
     }, [icon("close", "h-5 w-5")])
   ])
@@ -143,14 +143,14 @@ function renderModal(v) {
     attachBackgroundMusic(videoEl)
   }
 
-  const playerContainer = el("div", { className: "bg-black" }, [
+  const playerContainer = el("div", { className: "bg-slate-950" }, [
     videoEl ||
-      el("div", { className: "w-full aspect-video flex items-center justify-center text-sm text-white/60" }, [
+      el("div", { className: "w-full aspect-video flex items-center justify-center text-sm text-slate-400" }, [
         "Sem URL de vídeo configurada."
       ])
   ])
 
-  const footer = el("div", { className: "flex items-center justify-end gap-2 px-5 py-4 border-t border-white/10" }, [
+  const footer = el("div", { className: "flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-200" }, [
     el(
       "a",
       {
@@ -158,7 +158,7 @@ function renderModal(v) {
         target: "_blank",
         rel: "noopener noreferrer",
         className:
-          "inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/85 hover:bg-white/10 transition"
+          "inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition"
       },
       [icon("download", "h-4 w-4"), "Baixar"]
     )
@@ -212,7 +212,7 @@ export async function renderVideos(root, query) {
             time ? badge(time, "neon") : badge("Todos", "muted"),
           ]),
         ]),
-        el("a", { href: `#/venue/${encodeURIComponent(venueId)}?date=${encodeURIComponent(date)}&table=${encodeURIComponent(tableId)}`, className: "text-sm font-semibold text-white/80 hover:text-white" }, [
+        el("a", { href: `#/venue/${encodeURIComponent(venueId)}?date=${encodeURIComponent(date)}&table=${encodeURIComponent(tableId)}`, className: "inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-600 transition" }, [
           "Alterar filtros",
         ]),
       ]),
@@ -280,7 +280,7 @@ export async function renderVideos(root, query) {
         }, [
           el("button", {
             type: "button",
-            className: "h-14 w-14 rounded-full bg-neon-g text-ink-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform",
+            className: "h-14 w-14 rounded-full bg-brand text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform",
             onclick: () => renderModal(v)
           }, [icon("play", "h-6 w-6")])
         ])

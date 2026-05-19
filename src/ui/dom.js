@@ -20,6 +20,9 @@ export function el(tag, attrs = {}, children = []) {
 export function icon(name, sizeClass = "h-4 w-4") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
   svg.setAttribute("class", sizeClass)
+  const size = sizeClass.includes("h-5") || sizeClass.includes("w-5") ? "20" : "16"
+  svg.setAttribute("width", size)
+  svg.setAttribute("height", size)
   svg.setAttribute("viewBox", "0 0 24 24")
   svg.setAttribute("fill", "none")
   svg.setAttribute("stroke", "currentColor")
@@ -32,6 +35,9 @@ export function icon(name, sizeClass = "h-4 w-4") {
     user: ["<path d='M20 21a8 8 0 0 0-16 0'/><circle cx='12' cy='8' r='4'/>"],
     settings: ["<circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.82v.06a2 2 0 0 1-2 2.83 2 2 0 0 1-2.83-2l-.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0 1-1.82v-.06a2 2 0 0 1 2-2.83 2 2 0 0 1 2.83 2l.06.06a1.65 1.65 0 0 0 1.82.33z'/>"],
     arrow: ["<path d='M9 18l6-6-6-6'/>"],
+    "chevron-left": ["<path d='m15 18-6-6 6-6'/>"],
+    "chevron-right": ["<path d='m9 18 6-6-6-6'/>"],
+    calendar: ["<path d='M8 2v4'/><path d='M16 2v4'/><rect x='3' y='4' width='18' height='18' rx='2'/><path d='M3 10h18'/>"],
     play: ["<polygon points='5 3 19 12 5 21 5 3'/>"],
     download: ["<path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><polyline points='7 10 12 15 17 10'/><line x1='12' y1='15' x2='12' y2='3'/>"],
     close: ["<line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/>"],
@@ -41,4 +47,3 @@ export function icon(name, sizeClass = "h-4 w-4") {
   svg.innerHTML = paths.join("")
   return svg
 }
-

@@ -9,7 +9,7 @@ let authButtonEl = null
 function renderHeader() {
   const header = el("header", {
     className:
-      "sticky top-0 z-30 border-b border-white/10 bg-ink-950/75 backdrop-blur",
+      "sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur shadow-sm",
   })
 
   const inner = el("div", {
@@ -30,12 +30,12 @@ function renderHeader() {
       }
     ),
     el("div", { className: "min-w-0 hidden sm:block" }, [
-      el("div", { className: "text-sm font-semibold tracking-wide" }, [
+      el("div", { className: "text-sm font-semibold tracking-wide text-slate-900" }, [
         "CAM SNOOKER",
       ]),
       el(
         "div",
-        { className: "text-xs text-white/55 truncate" },
+        { className: "text-xs text-slate-500 truncate" },
         ["clipes premium do seu jogo"]
       ),
     ]),
@@ -43,7 +43,7 @@ function renderHeader() {
   left.appendChild(mark)
 
   headerTitleEl = el("div", {
-    className: "hidden sm:block text-sm text-white/70 truncate",
+    className: "hidden sm:block text-sm text-slate-500 truncate",
   })
   left.appendChild(headerTitleEl)
 
@@ -53,7 +53,7 @@ function renderHeader() {
     "button",
     {
       className:
-        "inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/90 hover:bg-white/10 active:scale-[.99] transition",
+        "inline-flex items-center gap-2 rounded-xl border border-brand/20 bg-brand text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 active:scale-[.99] transition",
       type: "button",
     },
     ["Entrar"]
@@ -70,7 +70,7 @@ function renderHeader() {
     {
       href: "#/profile",
       className:
-        "inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/90 hover:bg-white/10 active:scale-[.99] transition",
+        "inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 active:scale-[.99] transition",
     },
     [icon("user"), el("span", { className: "hidden sm:inline" }, ["Perfil"])]
   )
@@ -80,7 +80,7 @@ function renderHeader() {
     {
       href: "#/admin",
       className:
-        "inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/90 hover:bg-white/10 active:scale-[.99] transition",
+        "inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 active:scale-[.99] transition",
       title: "Admin",
     },
     [icon("settings")]
@@ -99,7 +99,7 @@ function renderHeader() {
 function renderFooter() {
   const footer = el("footer", {
     className:
-      "mt-10 border-t border-white/10 bg-black/10 text-white/45 text-xs",
+      "mt-10 border-t border-slate-200/60 bg-slate-50 text-slate-500 text-xs",
   })
   footer.appendChild(
     el(
@@ -108,7 +108,7 @@ function renderFooter() {
       [
         el("div", {}, ["CAM SNOOKER • MVP"]),
         el("div", { className: "text-right" }, [
-          el("a", { href: "#/", className: "hover:text-white/70" }, ["Home"]),
+          el("a", { href: "#/", className: "text-slate-600 hover:text-slate-900" }, ["Home"]),
         ]),
       ]
     )
