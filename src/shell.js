@@ -22,7 +22,7 @@ function renderHeader() {
     el(
       "img",
       {
-        src: "/logos/logo_preta.png",
+        src: "/logos/alogo_preta.png",
         alt: "CAM SNOOKER",
         className: "h-10 w-auto object-contain",
         loading: "lazy",
@@ -148,4 +148,3 @@ export function setView(node) {
   viewRoot.innerHTML = ""
   viewRoot.appendChild(node)
 }
-
