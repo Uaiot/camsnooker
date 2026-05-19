@@ -97,6 +97,7 @@ function closeModal() {
 function renderModal(v) {
   const watchUrl = resolveWatchUrl(v)
   const downloadUrl = resolveDownloadUrl(v)
+  const posterUrl = resolveThumbUrl(v)
 
   const overlay = el("div", {
     className: "fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4",
@@ -130,11 +131,11 @@ function renderModal(v) {
   const videoEl = watchUrl
     ? el("video", {
         src: watchUrl,
+        poster: posterUrl || null,
         className: "w-full aspect-video",
         controls: "true",
-        autoplay: "true",
         playsinline: "true",
-        preload: "metadata"
+        preload: "auto"
       })
     : null
 
@@ -172,6 +173,12 @@ function renderModal(v) {
       ]),
     videoEl ? playerError : null,
   ])
+
+  if (videoEl) {
+    playerContainer.addEventListener("click", () => {
+      if (videoEl.paused) startVideoWithMusic(videoEl)
+    })
+  }
 
   const footer = el("div", { className: "flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-200" }, [
     el(

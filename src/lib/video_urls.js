@@ -13,7 +13,11 @@ function driveFileId(v) {
 }
 
 function driveDownloadUrl(fileId) {
-  return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
+  return `/api/drive-video?id=${encodeURIComponent(fileId)}&download=1`
+}
+
+function driveWatchUrl(fileId) {
+  return `/api/drive-video?id=${encodeURIComponent(fileId)}`
 }
 
 function driveThumbnailUrl(fileId) {
@@ -35,7 +39,7 @@ export function resolveWatchUrl(v) {
   const u = v?.video_url || ""
   if (isHttpUrl(u)) return u
   const fileId = driveFileId(v)
-  if (fileId) return driveDownloadUrl(fileId)
+  if (fileId) return driveWatchUrl(fileId)
   if (isBareFilename(u)) return `${apiBaseUrl()}/api/watch/${encodeURIComponent(u)}`
   return ""
 }
