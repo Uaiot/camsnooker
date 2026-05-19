@@ -138,16 +138,39 @@ function renderModal(v) {
       })
     : null
 
+  const playerError = el("div", {
+    className: "hidden w-full aspect-video flex-col items-center justify-center gap-3 px-6 text-center text-sm text-slate-300",
+  }, [
+    el("div", { className: "font-semibold text-white" }, ["Nao foi possivel tocar este video aqui."]),
+    el("div", { className: "max-w-sm text-slate-400" }, [
+      "Abra o arquivo em uma nova aba ou baixe o clipe para assistir.",
+    ]),
+    el("a", {
+      href: downloadUrl || watchUrl || "#",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      className:
+        "inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100",
+    }, [icon("download", "h-4 w-4"), "Abrir arquivo"]),
+  ])
+
   if (videoEl) {
     activeVideo = videoEl
     attachBackgroundMusic(videoEl)
+    videoEl.addEventListener("error", () => {
+      videoEl.classList.add("hidden")
+      playerError.classList.remove("hidden")
+      playerError.classList.add("flex")
+      stopBgMusic(true)
+    })
   }
 
   const playerContainer = el("div", { className: "bg-slate-950" }, [
     videoEl ||
       el("div", { className: "w-full aspect-video flex items-center justify-center text-sm text-slate-400" }, [
         "Sem URL de vídeo configurada."
-      ])
+      ]),
+    videoEl ? playerError : null,
   ])
 
   const footer = el("div", { className: "flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-200" }, [
