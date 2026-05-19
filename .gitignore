@@ -1,0 +1,6 @@
+﻿node_modules/
+.env
+*.env
+*.backup
+*.bak*
+patch_*.py

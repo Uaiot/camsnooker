@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>CAM SNOOKER</title>
+  <meta name="theme-color" content="#05070a"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: {
+              950: "#05070a",
+              900: "#0a0f14",
+              850: "#0b1220",
+              800: "#111827",
+              700: "#1f2937",
+              600: "#334155",
+            },
+            neon: {
+              g: "#39ff88",
+              b: "#2dd4ff",
+            }
+          },
+          fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui"] },
+          boxShadow: {
+            soft: "0 10px 30px rgba(0,0,0,.35)",
+            card: "0 12px 40px rgba(0,0,0,.45)",
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="stylesheet" href="./styles.css"/>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
