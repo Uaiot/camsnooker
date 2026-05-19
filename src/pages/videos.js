@@ -1,7 +1,7 @@
 import { setHeaderTitle } from "../shell.js"
 import { getVenue, listTables, listVideos } from "../data/db.js"
 import { fmtIsoDate, fmtTime, fmtDurationSeconds } from "../lib/format.js"
-import { resolveThumbUrl, resolveWatchUrl, resolveDownloadUrl, resolveDrivePreviewUrl } from "../lib/video_urls.js"
+import { resolveThumbUrl, resolveWatchUrl, resolveDownloadUrl } from "../lib/video_urls.js"
 import { el, icon } from "../ui/dom.js"
 import { badge, button, card, toast } from "../ui/kit.js"
 
@@ -97,7 +97,6 @@ function closeModal() {
 function renderModal(v) {
   const watchUrl = resolveWatchUrl(v)
   const downloadUrl = resolveDownloadUrl(v)
-  const drivePreviewUrl = resolveDrivePreviewUrl(v)
 
   const overlay = el("div", {
     className: "fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4",
@@ -128,18 +127,7 @@ function renderModal(v) {
       onclick: closeModal
     }, [icon("close", "h-5 w-5")])
   ])
-  const driveFrame = drivePreviewUrl
-    ? el("iframe", {
-        src: drivePreviewUrl,
-        className: "w-full aspect-video border-0 bg-black",
-        allow: "autoplay; fullscreen; encrypted-media; picture-in-picture",
-        allowfullscreen: "true",
-        loading: "eager",
-        title: v.title || "Video",
-      })
-    : null
-
-  const videoEl = !driveFrame && watchUrl
+  const videoEl = watchUrl
     ? el("video", {
         src: watchUrl,
         className: "w-full aspect-video",
@@ -178,7 +166,6 @@ function renderModal(v) {
   }
 
   const playerContainer = el("div", { className: "bg-slate-950" }, [
-    driveFrame ||
     videoEl ||
       el("div", { className: "w-full aspect-video flex items-center justify-center text-sm text-slate-400" }, [
         "Sem URL de vídeo configurada."
