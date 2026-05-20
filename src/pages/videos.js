@@ -14,6 +14,19 @@ const BG_MUSIC_VOLUME = 0.22
 let bgMusic = null
 let musicEnabled = true
 
+function parseIsoDate(value) {
+  const [year, month, day] = String(value || "").split("-").map(Number)
+  if (!year || !month || !day) return new Date()
+  return new Date(year, month - 1, day)
+}
+
+function toIsoDate(date) {
+  const yyyy = String(date.getFullYear())
+  const mm = String(date.getMonth() + 1).padStart(2, "0")
+  const dd = String(date.getDate()).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd}`
+}
+
 function getBgMusic() {
   if (!bgMusic) {
     bgMusic = new Audio(BG_MUSIC_URL)
@@ -231,6 +244,15 @@ export async function renderVideos(root, query) {
   const tableName =
     tables.find((t) => t.id === tableId)?.name || (tableId ? "Mesa" : "Mesa")
   const dateLabel = date ? fmtIsoDate(`${date}T00:00:00`) : "Selecionar data"
+  function goToDate(offset) {
+    const nextDate = parseIsoDate(date)
+    nextDate.setDate(nextDate.getDate() + offset)
+    const qs = new URLSearchParams()
+    qs.set("venue", venueId)
+    qs.set("date", toIsoDate(nextDate))
+    if (tableId) qs.set("table", tableId)
+    location.hash = `#/videos?${qs.toString()}`
+  }
 
   const top = card([
     el("div", { className: "p-5 sm:p-6" }, [
@@ -238,18 +260,36 @@ export async function renderVideos(root, query) {
         el("div", { className: "min-w-0" }, [
           el("div", { className: "text-xl font-semibold tracking-tight truncate text-slate-950" }, [venue.name]),
           el("div", { className: "mt-3 grid gap-2 sm:grid-cols-[1fr_auto]" }, [
-            el("a", {
-              href: `#/venue/${encodeURIComponent(venueId)}?date=${encodeURIComponent(date)}&table=${encodeURIComponent(tableId)}`,
+            el("div", {
               className:
-                "flex items-center gap-3 rounded-2xl border border-brand/20 bg-brand/10 px-3 py-3 text-brand transition hover:bg-brand/15",
+                "flex items-center gap-2 rounded-2xl border border-brand/20 bg-brand/10 p-2 text-brand",
             }, [
-              el("span", { className: "inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-brand shadow-sm" }, [
-                icon("calendar", "h-5 w-5"),
+              el("button", {
+                type: "button",
+                className:
+                  "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand shadow-sm transition hover:bg-brand hover:text-white active:scale-95",
+                title: "Dia anterior",
+                onclick: () => goToDate(-1),
+              }, [icon("chevron-left", "h-5 w-5")]),
+              el("a", {
+                href: `#/venue/${encodeURIComponent(venueId)}?date=${encodeURIComponent(date)}&table=${encodeURIComponent(tableId)}`,
+                className: "flex min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1",
+              }, [
+                el("span", { className: "hidden h-10 w-10 items-center justify-center rounded-xl bg-white text-brand shadow-sm sm:inline-flex" }, [
+                  icon("calendar", "h-5 w-5"),
+                ]),
+                el("span", { className: "min-w-0" }, [
+                  el("span", { className: "block text-[11px] font-semibold uppercase tracking-[0.18em]" }, ["Data"]),
+                  el("span", { className: "block text-base font-bold leading-tight text-slate-950" }, [dateLabel]),
+                ]),
               ]),
-              el("span", { className: "min-w-0" }, [
-                el("span", { className: "block text-[11px] font-semibold uppercase tracking-[0.18em]" }, ["Data"]),
-                el("span", { className: "block text-base font-bold leading-tight text-slate-950" }, [dateLabel]),
-              ]),
+              el("button", {
+                type: "button",
+                className:
+                  "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand shadow-sm transition hover:bg-brand hover:text-white active:scale-95",
+                title: "Proximo dia",
+                onclick: () => goToDate(1),
+              }, [icon("chevron-right", "h-5 w-5")]),
             ]),
             el("div", { className: "flex flex-wrap items-center gap-2" }, [
               badge(tableName, "muted"),
