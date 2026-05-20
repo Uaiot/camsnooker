@@ -114,10 +114,10 @@ function renderModal(v) {
     className: "flex items-center justify-between gap-4 px-5 py-4 border-b border-slate-200"
   }, [
     el("div", { className: "min-w-0" }, [
-      el("div", { className: "text-base font-semibold truncate text-slate-900" }, [
+      el("div", { className: "hidden" }, [
         v.title || `Vídeo • ${fmtTime(v.recorded_at) || ""}`.trim()
       ]),
-      el("div", { className: "mt-1 flex flex-wrap gap-2" }, [
+      el("div", { className: "flex flex-wrap gap-2" }, [
         fmtTime(v.recorded_at) ? badge(fmtTime(v.recorded_at), "neon") : null,
         v.duration ? badge(fmtDurationSeconds(v.duration), "muted") : null
       ])
@@ -230,19 +230,34 @@ export async function renderVideos(root, query) {
   const tables = await listTables(venueId)
   const tableName =
     tables.find((t) => t.id === tableId)?.name || (tableId ? "Mesa" : "Mesa")
+  const dateLabel = date ? fmtIsoDate(`${date}T00:00:00`) : "Selecionar data"
 
   const top = card([
     el("div", { className: "p-5 sm:p-6" }, [
-      el("div", { className: "flex flex-wrap items-end justify-between gap-3" }, [
+      el("div", { className: "flex items-start justify-between gap-3" }, [
         el("div", { className: "min-w-0" }, [
           el("div", { className: "text-xl font-semibold tracking-tight truncate text-slate-950" }, [venue.name]),
-          el("div", { className: "mt-2 flex flex-wrap gap-2" }, [
-            badge(date ? fmtIsoDate(`${date}T00:00:00`) : "Data", "muted"),
-            badge(tableName, "muted"),
-            time ? badge(time, "neon") : badge("Todos", "muted"),
+          el("div", { className: "mt-3 grid gap-2 sm:grid-cols-[1fr_auto]" }, [
+            el("a", {
+              href: `#/venue/${encodeURIComponent(venueId)}?date=${encodeURIComponent(date)}&table=${encodeURIComponent(tableId)}`,
+              className:
+                "flex items-center gap-3 rounded-2xl border border-brand/20 bg-brand/10 px-3 py-3 text-brand transition hover:bg-brand/15",
+            }, [
+              el("span", { className: "inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-brand shadow-sm" }, [
+                icon("calendar", "h-5 w-5"),
+              ]),
+              el("span", { className: "min-w-0" }, [
+                el("span", { className: "block text-[11px] font-semibold uppercase tracking-[0.18em]" }, ["Data"]),
+                el("span", { className: "block text-base font-bold leading-tight text-slate-950" }, [dateLabel]),
+              ]),
+            ]),
+            el("div", { className: "flex flex-wrap items-center gap-2" }, [
+              badge(tableName, "muted"),
+              time ? badge(time, "neon") : badge("Todos", "muted"),
+            ]),
           ]),
         ]),
-        el("a", { href: `#/venue/${encodeURIComponent(venueId)}?date=${encodeURIComponent(date)}&table=${encodeURIComponent(tableId)}`, className: "inline-flex items-center gap-1.5 rounded-xl px-1 py-1 text-sm font-semibold text-brand transition hover:text-brand-600" }, [
+        el("a", { href: `#/venue/${encodeURIComponent(venueId)}?date=${encodeURIComponent(date)}&table=${encodeURIComponent(tableId)}`, className: "shrink-0 rounded-xl px-2 py-1 text-sm font-semibold text-brand transition hover:text-brand-600" }, [
           "Alterar filtros",
         ]),
       ]),
@@ -284,26 +299,27 @@ export async function renderVideos(root, query) {
     const downloadUrl = resolveDownloadUrl(v)
 
     const cardEl = el("div", {
-      className: "group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200/70 bg-ink-900 shadow-soft transition-all hover:-translate-y-1 hover:shadow-card"
+      className: "group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft transition-all hover:-translate-y-1 hover:shadow-card"
     })
 
+    const thumbFallback = el("div", {
+      className:
+        "flex h-full w-full items-center justify-center bg-gradient-to-br from-brand/10 via-white to-slate-100",
+    })
+    let thumbMedia = thumb
+      ? el("img", {
+          src: thumb,
+          alt: "Preview do clipe",
+          className: "h-full w-full object-cover transition-transform duration-300 group-hover:scale-105",
+          loading: "lazy",
+          onerror: () => thumbMedia.replaceWith(thumbFallback),
+        })
+      : thumbFallback
+
     const thumbContainer = el("div", { className: "relative aspect-video overflow-hidden" }, [
-      thumb
-        ? el("img", {
-            src: thumb,
-            alt: v.title || "thumbnail",
-            className: "w-full h-full object-cover transition-transform duration-300 group-hover:scale-105",
-            loading: "lazy"
-          })
-        : el(
-            "div",
-            {
-              className: "w-full h-full flex items-center justify-center text-sm text-white/40 bg-black/30"
-            },
-            ["Sem thumbnail"]
-          ),
+      thumbMedia,
       el("div", {
-        className: "absolute inset-0 flex items-center justify-center bg-black/10 transition-all group-hover:bg-black/30"
+        className: "absolute inset-0 flex items-center justify-center bg-gradient-to-b from-transparent via-transparent to-slate-950/10 transition-all group-hover:bg-black/10"
       }, [
         el("div", {
           className: "opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
@@ -317,14 +333,13 @@ export async function renderVideos(root, query) {
       ])
     ])
 
-    const content = el("div", { className: "p-4 text-white" }, [
-      el("div", { className: "truncate text-sm font-semibold text-white" }, [
+    const content = el("div", { className: "border-t border-slate-100 bg-white p-4" }, [
+      el("div", { className: "hidden" }, [
         v.title || `Vídeo • ${fmtTime(v.recorded_at) || ""}`.trim()
       ]),
-      el("div", { className: "mt-2 flex flex-wrap items-center justify-between gap-2" }, [
+      el("div", { className: "flex flex-wrap items-center justify-between gap-2" }, [
         el("div", { className: "flex flex-wrap gap-1.5" }, [
           fmtTime(v.recorded_at) ? badge(fmtTime(v.recorded_at), "neon") : null,
-          v.duration ? badge(fmtDurationSeconds(v.duration), "muted") : null
         ]),
         el(
           "a",
@@ -332,7 +347,7 @@ export async function renderVideos(root, query) {
             href: downloadUrl || "#",
             target: "_blank",
             rel: "noopener noreferrer",
-            className: "inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white transition hover:border-brand/40 hover:bg-brand",
+            className: "inline-flex h-10 w-10 items-center justify-center rounded-xl border border-brand/20 bg-brand/10 text-brand transition hover:bg-brand hover:text-white",
             title: "Baixar"
           },
           [icon("download", "h-4 w-4")]
