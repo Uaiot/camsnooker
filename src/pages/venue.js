@@ -2,7 +2,7 @@ import { setHeaderTitle } from "../shell.js"
 import { getVenue, listTables, listVideos } from "../data/db.js"
 import { fmtVenueLocation, fmtTime } from "../lib/format.js"
 import { el, icon } from "../ui/dom.js"
-import { badge, button, card, select, toast } from "../ui/kit.js"
+import { badge, button, card, toast } from "../ui/kit.js"
 
 function todayStr() {
   const d = new Date()
@@ -37,6 +37,33 @@ function formatDateDisplay(value) {
 function formatWeekday(value) {
   if (!value) return ""
   return parseIsoDate(value).toLocaleDateString("pt-BR", { weekday: "long" })
+}
+
+function createChoiceGroup(label) {
+  const list = el("div", { className: "flex flex-wrap gap-2" })
+  const wrap = el("div", { className: "block" }, [
+    el("div", { className: "mb-2 text-xs font-medium text-slate-600" }, [label]),
+    list,
+  ])
+
+  function render(options, value, onSelect) {
+    list.innerHTML = ""
+    for (const opt of options) {
+      const active = opt.value === value
+      const chip = el("button", {
+        type: "button",
+        className:
+          "inline-flex min-h-10 items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition active:scale-95 " +
+          (active
+            ? "border-brand bg-brand text-white shadow-soft"
+            : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-brand/30 hover:bg-brand/10 hover:text-brand"),
+        onclick: () => onSelect(opt.value),
+      }, [opt.label])
+      list.appendChild(chip)
+    }
+  }
+
+  return { wrap, render }
 }
 
 export async function renderVenue(root, query, params = {}) {
@@ -111,6 +138,8 @@ export async function renderVenue(root, query, params = {}) {
   const tables = await listTables(venueId)
   const dateValue = (typeof query?.get === "function" && query.get("date")) || todayStr()
   const tableValue = (typeof query?.get === "function" && query.get("table")) || (tables[0]?.id || "")
+  let selectedTable = tableValue
+  let selectedTime = ""
 
   const filtersCard = card([el("div", { className: "p-5 sm:p-6" })])
   const box = filtersCard.firstChild
@@ -119,7 +148,7 @@ export async function renderVenue(root, query, params = {}) {
     "Escolha a data, a mesa e um horário disponível para listar os vídeos.",
   ]))
 
-  const grid = el("div", { className: "mt-4 grid gap-3 lg:grid-cols-[1.25fr_0.85fr_0.85fr]" })
+  const grid = el("div", { className: "mt-4 grid gap-4 lg:grid-cols-[1.15fr_1fr]" })
 
   const weekdayDisplay = el("div", { className: "text-xs font-semibold uppercase tracking-[0.24em] text-brand" }, [
     formatWeekday(dateValue),
@@ -213,18 +242,18 @@ export async function renderVenue(root, query, params = {}) {
     dateInput,
   ])
 
-  const tableSel = select({
-    label: "Mesa",
-    value: tableValue,
-    options: [{ value: "", label: "Selecione" }].concat(
-      tables.map((t) => ({ value: t.id, label: t.name || `Mesa ${t.table_code || ""}`.trim() }))
-    ),
-  })
+  const tableOptions = tables.length
+    ? tables.map((t) => ({ value: t.id, label: t.name || `Mesa ${t.table_code || ""}`.trim() }))
+    : [{ value: "", label: "Selecione" }]
+  const tableGroup = createChoiceGroup("Mesa")
+  const timeGroup = createChoiceGroup("Horário")
+  const controlsWrap = el("div", {
+    className:
+      "grid content-start gap-4 rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4",
+  }, [tableGroup.wrap, timeGroup.wrap])
 
-  const timeSel = select({ label: "Horário", value: "", options: [{ value: "", label: "Carregando..." }] })
   grid.appendChild(dateWrap)
-  grid.appendChild(tableSel.wrap)
-  grid.appendChild(timeSel.wrap)
+  grid.appendChild(controlsWrap)
   box.appendChild(grid)
 
   const meta = el("div", { className: "mt-4 flex flex-wrap items-center justify-between gap-3" })
@@ -240,6 +269,24 @@ export async function renderVenue(root, query, params = {}) {
 
   let currentVideos = []
 
+  function renderTableChoices() {
+    tableGroup.render(tableOptions, selectedTable, (value) => {
+      if (value === selectedTable) return
+      selectedTable = value
+      selectedTime = ""
+      renderTableChoices()
+      refreshAvailability()
+    })
+  }
+
+  function renderTimeChoices(options = [{ value: "", label: "Todos" }]) {
+    timeGroup.render(options, selectedTime, (value) => {
+      selectedTime = value
+      renderTimeChoices(options)
+      updateCtaState()
+    })
+  }
+
   function computeTimeOptions(videos) {
     const seen = new Map()
     for (const v of videos) {
@@ -254,8 +301,8 @@ export async function renderVenue(root, query, params = {}) {
   function updateCtaState() {
     const venue = venueId
     const date = dateInput.value
-    const table = tableSel.select.value
-    const time = timeSel.select.value
+    const table = selectedTable
+    const time = selectedTime
     if (!venue || !date || !table) {
       cta.setAttribute("disabled", "true")
       return
@@ -273,22 +320,22 @@ export async function renderVenue(root, query, params = {}) {
 
   async function refreshAvailability() {
     const date = dateInput.value
-    const table = tableSel.select.value
-    if (!date || !table) return
+    const table = selectedTable
+    if (!date || !table) {
+      countPill.textContent = "0 vídeos"
+      renderTimeChoices([{ value: "", label: "Todos" }])
+      updateCtaState()
+      return
+    }
     try {
       currentVideos = await listVideos({ venueId, tableId: table, date })
       countPill.textContent = `${currentVideos.length} vídeos`
       const opts = computeTimeOptions(currentVideos)
-      timeSel.select.innerHTML = ""
-      for (const opt of opts) {
-        timeSel.select.appendChild(
-          el("option", { value: opt.value }, [opt.label])
-        )
-      }
+      if (!opts.some((opt) => opt.value === selectedTime)) selectedTime = ""
+      renderTimeChoices(opts)
     } catch (e) {
       toast(`Erro ao carregar horários: ${e?.message || "falha"}`, "error")
-      timeSel.select.innerHTML = ""
-      timeSel.select.appendChild(el("option", { value: "" }, ["Todos"]))
+      renderTimeChoices([{ value: "", label: "Todos" }])
       countPill.textContent = "0 vídeos"
       currentVideos = []
     } finally {
@@ -345,10 +392,10 @@ export async function renderVenue(root, query, params = {}) {
     draggingDate = false
     dateValueDisplay.style.transform = ""
   })
-  tableSel.select.addEventListener("change", () => refreshAvailability())
-  timeSel.select.addEventListener("change", () => updateCtaState())
   cta.addEventListener("click", () => updateCtaState())
 
+  renderTableChoices()
+  renderTimeChoices([{ value: "", label: "Carregando..." }])
   await refreshAvailability()
   updateCtaState()
 }
