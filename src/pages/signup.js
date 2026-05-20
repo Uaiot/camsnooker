@@ -152,14 +152,15 @@ export async function renderSignup(root, query) {
         if (!r.ok) throw new Error(r.error || "Falha no cadastro")
 
         const sess = await getSession()
-        if (sess?.user) {
-          await upsertProfile({
-            user_id: sess.user.id,
-            full_name: fullName.input.value.trim(),
-            email: e,
-            phone: phone.input.value.trim(),
-          })
-        }
+        const authUser = r.data?.user || sess?.user
+        if (!authUser?.id) throw new Error("Usuario criado, mas nao foi possivel localizar o ID do usuario.")
+
+        await upsertProfile({
+          user_id: authUser.id,
+          full_name: fullName.input.value.trim(),
+          email: e,
+          phone: phone.input.value.trim(),
+        })
 
         toast("Conta criada com sucesso.", "info")
         if (venueId) location.hash = `#/venue/${encodeURIComponent(venueId)}`
