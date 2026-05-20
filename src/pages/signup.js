@@ -3,8 +3,44 @@ import { getVenue, upsertProfile } from "../data/db.js"
 import { signUp, getSession } from "../state/auth.js"
 import { isSupabaseConfigured } from "../lib/supabase.js"
 import { fmtVenueLocation } from "../lib/format.js"
-import { el } from "../ui/dom.js"
+import { el, icon } from "../ui/dom.js"
 import { badge, button, card, input, toast } from "../ui/kit.js"
+
+function formatPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 11)
+  if (digits.length <= 2) return digits ? `(${digits}` : ""
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+}
+
+function passwordInput({ label, autocomplete } = {}) {
+  const wrap = el("label", { className: "block" })
+  wrap.appendChild(el("div", { className: "mb-1 text-xs font-medium text-slate-600" }, [label || "Senha"]))
+  const field = el("div", { className: "relative" })
+  const i = el("input", {
+    className:
+      "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15",
+    type: "password",
+    autocomplete: autocomplete || "",
+  })
+  const toggleIcon = icon("eye", "h-4 w-4")
+  const toggle = el("button", {
+    type: "button",
+    className:
+      "absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900",
+    title: "Mostrar senha",
+  }, [toggleIcon])
+  toggle.addEventListener("click", () => {
+    const showing = i.type === "text"
+    i.type = showing ? "password" : "text"
+    toggle.title = showing ? "Mostrar senha" : "Ocultar senha"
+    toggleIcon.innerHTML = icon(showing ? "eye" : "eye-off", "h-4 w-4").innerHTML
+  })
+  field.appendChild(i)
+  field.appendChild(toggle)
+  wrap.appendChild(field)
+  return { wrap, input: i }
+}
 
 export async function renderSignup(root, query) {
   setHeaderTitle("Cadastro")
@@ -13,7 +49,7 @@ export async function renderSignup(root, query) {
   const venue = venueId ? await getVenue(venueId) : null
 
   root.appendChild(
-    el("div", { className: "grid gap-4 lg:grid-cols-[1.1fr_.9fr]" }, [
+    el("div", { className: "grid gap-4 lg:grid-cols-[1.05fr_.95fr]" }, [
       card(
         [
           el("div", { className: "p-5 sm:p-6" }, [
@@ -21,10 +57,10 @@ export async function renderSignup(root, query) {
               badge("Criar conta", "neon"),
               badge(isSupabaseConfigured() ? "Supabase: ON" : "Supabase: OFF"),
             ]),
-            el("div", { className: "mt-4 text-2xl font-semibold" }, [
+            el("div", { className: "mt-4 text-2xl font-semibold tracking-tight text-slate-950" }, [
               "Conta CAM SNOOKER",
             ]),
-            el("div", { className: "mt-2 text-sm text-white/55" }, [
+            el("div", { className: "mt-2 max-w-sm text-sm leading-6 text-slate-600" }, [
               "Cadastro rápido para acessar os vídeos do local.",
             ]),
             venue
@@ -32,13 +68,13 @@ export async function renderSignup(root, query) {
                   "div",
                   {
                     className:
-                      "mt-5 rounded-2xl border border-white/10 bg-white/5 p-4",
+                      "mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4",
                   },
                   [
-                    el("div", { className: "text-sm font-semibold" }, [
+                    el("div", { className: "text-sm font-semibold text-slate-950" }, [
                       venue.name,
                     ]),
-                    el("div", { className: "mt-1 text-sm text-white/55" }, [
+                    el("div", { className: "mt-1 text-sm text-slate-500" }, [
                       fmtVenueLocation(venue),
                     ]),
                   ]
@@ -62,24 +98,27 @@ export async function renderSignup(root, query) {
     const phone = input({
       label: "Telefone",
       autocomplete: "tel",
+      inputmode: "numeric",
+      maxlength: "15",
       placeholder: "(xx) xxxxx-xxxx",
     })
-    const email = input({ label: "E-mail", type: "email", autocomplete: "email" })
-    const password = input({
+    phone.input.addEventListener("input", () => {
+      phone.input.value = formatPhone(phone.input.value)
+    })
+    const email = input({ label: "E-mail", type: "email", autocomplete: "email", placeholder: "seu@email.com" })
+    const password = passwordInput({
       label: "Senha",
-      type: "password",
       autocomplete: "new-password",
     })
-    const confirm = input({
+    const confirm = passwordInput({
       label: "Confirmar senha",
-      type: "password",
       autocomplete: "new-password",
     })
 
     const submit = button("Criar conta", { variant: "primary" })
     const back = el(
       "a",
-      { href: `#/login?venue=${encodeURIComponent(venueId)}`, className: "text-sm text-white/70 hover:text-white" },
+      { href: `#/login?venue=${encodeURIComponent(venueId)}`, className: "text-sm font-medium text-brand hover:text-brand-600" },
       ["Já tenho conta"]
     )
 
@@ -141,4 +180,3 @@ export async function renderSignup(root, query) {
     return wrap
   }
 }
-

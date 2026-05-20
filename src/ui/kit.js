@@ -56,7 +56,7 @@ export function button(label, { variant = "primary", type = "button", onClick, d
   return b
 }
 
-export function input({ label, type = "text", value = "", placeholder = "", name, autocomplete } = {}) {
+export function input({ label, type = "text", value = "", placeholder = "", name, autocomplete, inputmode, maxlength } = {}) {
   const wrap = el("label", { className: "block" })
   wrap.appendChild(
     el("div", { className: "mb-1 text-xs font-medium text-slate-600" }, [label || ""])
@@ -69,6 +69,8 @@ export function input({ label, type = "text", value = "", placeholder = "", name
     placeholder,
     name: name || "",
     autocomplete: autocomplete || "",
+    inputmode: inputmode || null,
+    maxlength: maxlength || null,
   })
   wrap.appendChild(i)
   return { wrap, input: i }
@@ -113,4 +115,3 @@ export function toast(text, tone = "info") {
   document.body.appendChild(t)
   setTimeout(() => t.remove(), 2800)
 }
-
